@@ -1,3 +1,5 @@
+@use "animations";
+
 // მთავარი განლაგება (Sidebar + Content)
 .app-layout {
   display: flex;
@@ -84,6 +86,80 @@
   }
 }
 
+.dashboard-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #2a5298 100%);
+  color: #ffffff;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  border: none;
+  box-shadow: 0 10px 30px -10px rgba(26, 54, 93, 0.4);
+  min-height: 220px;
+
+  &:hover {
+    transform: none;
+    box-shadow: 0 10px 30px -10px rgba(26, 54, 93, 0.4);
+  }
+
+  .hero-text {
+    z-index: 2;
+    max-width: 60%;
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      color: #ffffff;
+    }
+
+    .clock {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      opacity: 0.8;
+      line-height: 1.5;
+      color: #ffffff;
+    }
+  }
+
+  .hero-3d {
+    position: absolute;
+    right: -50px;
+    top: -50px;
+    width: 500px;
+    height: 400px;
+    z-index: 1;
+    pointer-events: none;
+
+    spline-viewer {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (max-width: 768px) {
+      opacity: 0.3;
+      right: -100px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero-text {
+      max-width: 100%;
+    }
+  }
+}
+
 // ზოგადი ბარათის სტილი შიდა კონტენტისთვის
 .panel {
   background-color: var(--card-bg);
@@ -91,6 +167,20 @@
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  @include animations.hover-lift;
+}
+
+.panel.dashboard-hero {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #2a5298 100%);
+  border: none;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px -10px rgba(26, 54, 93, 0.4);
+
+  &:hover {
+    transform: none;
+    box-shadow: 0 10px 30px -10px rgba(26, 54, 93, 0.4);
+  }
 }
 
 // მოდალის სტილები
@@ -166,6 +256,16 @@
   border-radius: 8px;
   margin-bottom: 1rem;
   cursor: pointer;
+  @include animations.hover-lift;
+  border-left: 4px solid transparent;
+
+  &.status-won {
+    border-left-color: var(--success-color);
+  }
+
+  &.status-lost {
+    border-left-color: var(--error-color);
+  }
 
   img {
     width: 50px;
@@ -199,6 +299,11 @@
     border-radius: 4px;
     cursor: pointer;
     &:hover { background: var(--error-color); color: white; }
+  }
+
+  &.skeleton-card:hover {
+    transform: none;
+    box-shadow: none;
   }
 }
 
@@ -260,9 +365,11 @@
   color: var(--error-color);
 }
 
-.live-clock {
+.live-clock,
+.clock {
   color: var(--text-secondary);
   font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .profile-forms {

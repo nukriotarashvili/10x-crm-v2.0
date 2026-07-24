@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>10X CRM - Dashboard</title>
     <link rel="stylesheet" href="styles/main.css">
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.4/build/spline-viewer.js"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -22,9 +23,15 @@
         </aside>
 
         <main class="main-content">
-            <div class="page-header">
-                <h1 id="welcomeMessage">Welcome back!</h1>
-                <div id="liveClock" class="live-clock"></div>
+            <div class="dashboard-hero panel">
+                <div class="hero-text">
+                    <h1 id="welcomeMessage">Welcome back!</h1>
+                    <div id="liveClock" class="clock"></div>
+                    <p class="subtitle">Here is your business overview for today.</p>
+                </div>
+                <div class="hero-3d" aria-hidden="true">
+                    <spline-viewer url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode"></spline-viewer>
+                </div>
             </div>
 
             <div id="dashboardContent" class="panel">
@@ -32,7 +39,6 @@
             </div>
         </main>
     </div>
-    <script src="js/guard.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
