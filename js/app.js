@@ -16,7 +16,6 @@ import {
     validateSignup
 } from './services/auth.js';
 import {
-    addClientToState,
     createClient,
     filterAndSortClients,
     getClientsState,
@@ -249,7 +248,6 @@ async function initClientsPage(clientsContainer) {
                 return;
             }
 
-            addClientToState(result.client);
             applyFiltersAndRender();
             closeModal();
             showToast('Client added ✓', 'success');

@@ -6,29 +6,18 @@ let clientsState = [];
 
 export const getClientsState = () => clientsState;
 
-const saveState = () => {
-    localStorage.setItem('crm_clients', JSON.stringify(clientsState));
-};
-
 export const loadClients = async (container) => {
     if (container) {
         showSkeletonLoader(container);
     }
 
-    const storedClients = localStorage.getItem('crm_clients');
-    if (storedClients) {
-        clientsState = JSON.parse(storedClients);
-        return clientsState;
-    }
-
     try {
         clientsState = await api.getClients();
-        saveState();
         return clientsState;
-    } catch {
+    } catch (error) {
         if (container) {
             container.innerHTML =
-                '<div class="error-state">Failed to load clients. Check your connection and try again.</div>';
+                '<div style="color: var(--error-color); text-align: center;">Failed to load clients from database.</div>';
         }
         clientsState = [];
         return [];
@@ -42,18 +31,22 @@ export const ensureClientsLoaded = async () => {
     return loadClients(null);
 };
 
-export const addClientToState = (newClient) => {
-    clientsState.unshift(newClient);
-    saveState();
+export const addClientToState = async (newClientData) => {
+    const savedClient = await api.addClient(newClientData);
+    clientsState.unshift(savedClient);
+    return savedClient;
 };
 
-export const deleteClientFromState = (clientId) => {
+export const deleteClientFromState = async (clientId) => {
+    await api.deleteClient(clientId);
     clientsState = clientsState.filter((c) => c.id.toString() !== clientId.toString());
-    saveState();
 };
 
-export const resetClientsData = () => {
-    localStorage.removeItem('crm_clients');
+export const resetClientsData = async () => {
+    const ids = clientsState.map((c) => c.id);
+    for (const id of ids) {
+        await api.deleteClient(id);
+    }
     clientsState = [];
 };
 
@@ -71,27 +64,23 @@ export const createClient = async (formData) => {
         return { ok: false, errors };
     }
 
-    const newClient = {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone.trim(),
-        company: company.trim(),
-        dealValue,
-        status,
-        notes: [],
-        createdAt: new Date().toISOString(),
-        image: 'https://dummyjson.com/icon/new/128'
-    };
-
-    const data = await api.addClient(newClient);
-    newClient.id = data.id || Date.now();
-
-    return { ok: true, client: newClient };
+    try {
+        const client = await addClientToState({
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            phone: phone.trim(),
+            company: company.trim(),
+            dealValue,
+            status
+        });
+        return { ok: true, client };
+    } catch {
+        return { ok: false };
+    }
 };
 
 export const removeClient = async (clientId) => {
-    await api.deleteClient(clientId);
-    deleteClientFromState(clientId);
+    await deleteClientFromState(clientId);
 };
 
 export const filterAndSortClients = (clients, { searchTerm, activeFilter, sortValue }) => {

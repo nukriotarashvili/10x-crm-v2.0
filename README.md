@@ -13,9 +13,9 @@ Repository: [github.com/nukriotarashvili/10x-crm-v2.0](https://github.com/nukrio
 |---|---|
 | **UI** | HTML5, SCSS → CSS, responsive layout |
 | **Logic** | ES modules (`type="module"`), no bundler |
-| **Data** | `localStorage` (users, session, clients) + [DummyJSON](https://dummyjson.com) API |
+| **Data** | Supabase (`clients`) + `localStorage` (users, session, theme) |
+| **Fallback** | [DummyJSON](https://dummyjson.com) if Supabase anon key is missing |
 | **3D** | [Spline Viewer](https://spline.design) on login/signup & dashboard hero |
-| **Future** | `js/api/supabase.js` structured for Supabase REST migration |
 
 ---
 
@@ -80,11 +80,29 @@ sass styles/main.scss styles/main.css
 
 ---
 
+## Supabase setup / ბაზის დაკავშირება
+
+Project URL: `https://ygizkwgkbutczbctislm.supabase.co`
+
+1. **SQL** — Supabase Dashboard → SQL Editor → run `supabase/migrations/20260724120000_create_clients.sql`
+2. **API key** — Settings → API → copy **anon public** key into `js/config.js`:
+
+```javascript
+export const SUPABASE_URL = 'https://ygizkwgkbutczbctislm.supabase.co';
+export const SUPABASE_ANON_KEY = 'your-anon-key-here';
+```
+
+3. Copy `js/config.example.js` if `js/config.js` is missing (`config.js` is gitignored).
+
+Without a valid anon key, the app falls back to DummyJSON + localStorage for clients.
+
+**Security:** Dev RLS policy on `clients` is open for `anon` — replace with Supabase Auth + strict policies before production.
+
+---
+
 ## Environment / გარემო
 
-Optional `.env.local` may hold future Supabase keys. **Do not commit** secrets — keep `.env.local` out of git.
-
-Vanilla static app does not load `.env` at runtime yet; configure Supabase in `js/api/supabase.js` when you migrate off DummyJSON.
+Do not commit `js/config.js` or `.env.local` with real keys. See `.env.local.example` for reference.
 
 ---
 

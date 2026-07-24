@@ -1,3 +1,4 @@
+import { resetClientsData } from './clients.js';
 import { showToast, showError, clearErrors } from '../utils/dom.js';
 
 export const initProfile = () => {
@@ -114,9 +115,9 @@ const setupChangePassword = (currentUser, users) => {
 const setupResetData = () => {
     const resetBtn = document.getElementById('resetDataBtn');
     if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
+        resetBtn.addEventListener('click', async () => {
             if (confirm('Reset CRM Data? This will clear all clients.')) {
-                localStorage.removeItem('crm_clients');
+                await resetClientsData();
                 window.location.href = 'clients.html';
             }
         });
