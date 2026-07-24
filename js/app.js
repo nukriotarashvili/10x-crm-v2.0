@@ -2,71 +2,63 @@ import {
     applyFieldErrors,
     attachLiveInputErrorClear,
     clearErrors,
-    showGenericFormError,
     showToast
 } from './utils/dom.js';
 import {
     checkAuth,
     handleLogout,
     initTheme,
-    loginUser,
-    registerUser,
-    toggleTheme,
-    validateLogin,
-    validateSignup
+    toggleTheme
 } from './services/auth.js';
-import {
-    createClient,
-    filterAndSortClients,
-    getClientsState,
-    loadClients,
-    removeClient
-} from './services/clients.js';
-import { initDashboard } from './services/dashboard.js';
-import { initProfile } from './services/profile.js';
 
 window.showToast = showToast;
-
-checkAuth();
 initTheme();
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', toggleTheme);
+async function bootApp() {
+    try {
+        const allowed = await checkAuth();
+        if (!allowed) {
+            return;
+        }
+    } catch (error) {
+        console.error('Auth guard error:', error);
+        return;
     }
 
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
-    }
+    document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        void handleLogout();
+    });
+    document.getElementById('logoBrand')?.addEventListener('click', () => {
+        window.location.href = 'dashboard.html';
+    });
 
-    const logoBrand = document.getElementById('logoBrand');
-    if (logoBrand) {
-        logoBrand.addEventListener('click', () => {
-            window.location.href = 'dashboard.html';
-        });
-    }
+    const path = window.location.pathname.toLowerCase();
 
-    const path = window.location.pathname;
-
-    if (path.endsWith('index.html') || path === '/') {
-        initLoginPage();
-    } else if (path.endsWith('signup.html')) {
-        initSignupPage();
-    } else if (path.endsWith('clients.html')) {
+    if (path.endsWith('clients.html')) {
+        const { loadClients, createClient, filterAndSortClients, getClientsState, removeClient } =
+            await import('./services/clients.js');
         const container = document.getElementById('clientsContainer');
         if (container) {
-            await initClientsPage(container);
+            await initClientsPage(container, {
+                loadClients,
+                createClient,
+                filterAndSortClients,
+                getClientsState,
+                removeClient
+            });
         }
     } else if (path.endsWith('dashboard.html')) {
+        const { loadClients } = await import('./services/clients.js');
+        const { initDashboard } = await import('./services/dashboard.js');
         const dummyContainer = document.createElement('div');
         await loadClients(dummyContainer);
-        initDashboard();
+        await initDashboard();
     } else if (path.endsWith('profile.html')) {
-        initProfile();
+        const { initProfile } = await import('./services/profile.js');
+        await initProfile();
     }
-});
+}
 
 function renderClientsUI(clientsArray, container) {
     container.innerHTML = '';
@@ -105,72 +97,15 @@ function renderClientsUI(clientsArray, container) {
     });
 }
 
-function initLoginPage() {
-    const loginForm = document.getElementById('loginForm');
-    if (!loginForm) return;
+async function initClientsPage(clientsContainer, clientsApi) {
+    const {
+        loadClients,
+        createClient,
+        filterAndSortClients,
+        getClientsState,
+        removeClient
+    } = clientsApi;
 
-    attachLiveInputErrorClear(loginForm);
-
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        clearErrors(loginForm);
-        loginForm.querySelector('.generic-error')?.remove();
-
-        const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-        const password = document.getElementById('loginPassword').value;
-        const errors = validateLogin({ email, password });
-
-        if (Object.keys(errors).length > 0) {
-            applyFieldErrors(errors);
-            return;
-        }
-
-        const result = loginUser({ email, password });
-        if (result.ok) {
-            window.location.href = 'dashboard.html';
-        } else {
-            showGenericFormError(loginForm, 'Invalid email or password');
-        }
-    });
-}
-
-function initSignupPage() {
-    const signupForm = document.getElementById('signupForm');
-    if (!signupForm) return;
-
-    attachLiveInputErrorClear(signupForm);
-
-    signupForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        clearErrors(signupForm);
-
-        const fullName = document.getElementById('signupName').value.trim();
-        const email = document.getElementById('signupEmail').value.trim().toLowerCase();
-        const company = document.getElementById('signupCompany').value.trim();
-        const password = document.getElementById('signupPassword').value;
-        const confirmPassword = document.getElementById('signupConfirmPassword').value;
-
-        const errors = validateSignup({
-            name: fullName,
-            email,
-            password,
-            confirmPassword
-        });
-
-        if (Object.keys(errors).length > 0) {
-            applyFieldErrors(errors);
-            return;
-        }
-
-        registerUser({ fullName, email, company, password, confirmPassword });
-        showToast('Account created successfully! Please log in.', 'success');
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1500);
-    });
-}
-
-async function initClientsPage(clientsContainer) {
     let activeFilter = 'All';
 
     const addClientBtn = document.getElementById('addClientBtn');
@@ -269,4 +204,14 @@ async function initClientsPage(clientsContainer) {
     });
 
     applyFiltersAndRender();
+}
+
+function start() {
+    void bootApp();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+} else {
+    start();
 }

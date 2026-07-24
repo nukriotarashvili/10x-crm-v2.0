@@ -1,3 +1,5 @@
+import { getPasswordRuleStates, getPasswordStrengthPercent } from './validation.js';
+
 export const showToast = (message, type = 'success') => {
     let toast = document.getElementById('app-toast');
     if (!toast) {
@@ -5,21 +7,35 @@ export const showToast = (message, type = 'success') => {
         toast.id = 'app-toast';
         document.body.appendChild(toast);
     }
-    toast.className = `toast ${type} show`;
+    toast.classList.remove('hide', 'show');
+    toast.className = `toast ${type}`;
     toast.textContent = message;
-    setTimeout(() => {
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => {
         toast.classList.remove('show');
+        toast.classList.add('hide');
     }, 3000);
 };
 
 export const showError = (input, message) => {
     if (!input) return;
     input.classList.add('input-error');
-    let errorDisplay = input.nextElementSibling;
-    if (!errorDisplay || !errorDisplay.classList.contains('error-text')) {
+    const group = input.closest('.form-group');
+    let errorDisplay = group
+        ? group.querySelector(':scope > .error-text')
+        : null;
+
+    if (!errorDisplay) {
         errorDisplay = document.createElement('span');
         errorDisplay.className = 'error-text';
-        input.parentNode.insertBefore(errorDisplay, input.nextSibling);
+        if (group) {
+            group.appendChild(errorDisplay);
+        } else {
+            input.parentNode.insertBefore(errorDisplay, input.nextSibling);
+        }
     }
     errorDisplay.textContent = message;
 };
@@ -40,12 +56,63 @@ export const attachLiveInputErrorClear = (root = document) => {
     root.querySelectorAll('input').forEach((input) => {
         input.addEventListener('input', function () {
             this.classList.remove('input-error');
-            const next = this.nextElementSibling;
-            if (next && next.classList.contains('error-text')) {
-                next.remove();
+            const group = this.closest('.form-group');
+            const errorEl = group
+                ? group.querySelector(':scope > .error-text')
+                : this.nextElementSibling;
+            if (errorEl && errorEl.classList.contains('error-text')) {
+                errorEl.remove();
             }
         });
     });
+};
+
+export const initPasswordStrengthMeter = (passwordInput, meterRoot) => {
+    if (!passwordInput || !meterRoot) return () => {};
+
+    const fill = meterRoot.querySelector('.password-strength__fill');
+    const label = meterRoot.querySelector('.password-strength__label');
+    const ruleItems = meterRoot.querySelectorAll('[data-rule]');
+
+    const update = () => {
+        const password = passwordInput.value;
+        const percent = getPasswordStrengthPercent(password);
+        const rules = getPasswordRuleStates(password);
+
+        if (fill) {
+            fill.style.width = `${percent}%`;
+            fill.dataset.level =
+                percent === 100 ? 'strong' : percent >= 34 ? 'medium' : percent > 0 ? 'weak' : 'empty';
+        }
+
+        if (label) {
+            if (percent === 0) {
+                label.textContent = 'Password strength';
+            } else if (percent < 100) {
+                label.textContent = `Password strength · ${percent}%`;
+            } else {
+                label.textContent = 'Password strength · Strong';
+            }
+        }
+
+        const track = meterRoot.querySelector('.password-strength__track');
+        if (track) {
+            track.setAttribute('aria-valuenow', String(percent));
+        }
+
+        ruleItems.forEach((item) => {
+            const ruleId = item.getAttribute('data-rule');
+            const met = rules.find((rule) => rule.id === ruleId)?.met;
+            item.classList.toggle('is-met', Boolean(met));
+        });
+
+        meterRoot.classList.toggle('is-active', password.length > 0);
+    };
+
+    passwordInput.addEventListener('input', update);
+    update();
+
+    return update;
 };
 
 export const showGenericFormError = (form, message) => {
@@ -67,12 +134,14 @@ export const showSkeletonLoader = (container, count = 5) => {
         .fill(0)
         .map(
             () => `
-        <div class="client-card skeleton-card" style="pointer-events: none;">
-            <div class="skeleton" style="width: 50px; height: 50px; border-radius: 50%;"></div>
-            <div class="info" style="width: 100%;">
-                <div class="skeleton" style="height: 1.2rem; width: 40%; margin-bottom: 0.5rem;"></div>
-                <div class="skeleton" style="height: 0.9rem; width: 60%;"></div>
+        <div class="client-card skeleton-card" aria-hidden="true">
+            <div class="skeleton skeleton-card__avatar"></div>
+            <div class="info">
+                <div class="skeleton skeleton-card__line skeleton-card__line--title"></div>
+                <div class="skeleton skeleton-card__line skeleton-card__line--subtitle"></div>
+                <div class="skeleton skeleton-card__line skeleton-card__line--meta"></div>
             </div>
+            <div class="skeleton skeleton-card__badge"></div>
         </div>
     `
         )

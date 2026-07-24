@@ -1,9 +1,43 @@
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const PASS_REGEX = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
+export const PASSWORD_SYMBOL_REGEX = /[!@#$%&*]/;
+
+export const PASSWORD_RULES = [
+    {
+        id: 'length',
+        label: 'At least 8 characters',
+        test: (password) => password.length >= 8
+    },
+    {
+        id: 'uppercase',
+        label: 'At least one uppercase letter (A–Z)',
+        test: (password) => /[A-Z]/.test(password)
+    },
+    {
+        id: 'symbol',
+        label: 'At least one symbol (!@#$%&*)',
+        test: (password) => PASSWORD_SYMBOL_REGEX.test(password)
+    }
+];
+
+export const getPasswordRuleStates = (password) =>
+    PASSWORD_RULES.map((rule) => ({
+        ...rule,
+        met: rule.test(password)
+    }));
+
+export const getPasswordStrengthPercent = (password) => {
+    if (!password) return 0;
+    const metCount = getPasswordRuleStates(password).filter((rule) => rule.met).length;
+    return Math.round((metCount / PASSWORD_RULES.length) * 100);
+};
 
 export const isValidEmail = (email) => EMAIL_REGEX.test(email);
 
-export const isValidPassword = (password) => PASS_REGEX.test(password);
+export const isValidPassword = (password) =>
+    getPasswordRuleStates(password).every((rule) => rule.met);
+
+export const getPasswordValidationMessage = () =>
+    'Password must be at least 8 characters, include an uppercase letter, and a symbol (!@#$%&*).';
 
 export const hasMinLength = (value, min) => value.trim().length >= min;
 
@@ -19,8 +53,7 @@ export const validateSignupFields = ({ name, email, password, confirmPassword, e
         errors.signupEmail = 'An account with this email already exists';
     }
     if (!isValidPassword(password)) {
-        errors.signupPassword =
-            'Password must be at least 8 characters and contain a letter and a number';
+        errors.signupPassword = getPasswordValidationMessage();
     }
     if (password !== confirmPassword || password === '') {
         errors.signupConfirmPassword = 'Passwords do not match';
@@ -67,7 +100,7 @@ export const validatePasswordChange = ({ currentPassword, storedPassword, newPas
         errors.currentPass = 'Current password is incorrect';
     }
     if (!isValidPassword(newPassword)) {
-        errors.newPass = 'Password must be at least 8 characters and contain a letter and a number';
+        errors.newPass = getPasswordValidationMessage();
     } else if (newPassword === currentPassword) {
         errors.newPass = 'New password must be different from the current one';
     }

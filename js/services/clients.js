@@ -17,7 +17,7 @@ export const loadClients = async (container) => {
     } catch (error) {
         if (container) {
             container.innerHTML =
-                '<div style="color: var(--error-color); text-align: center;">Failed to load clients from database.</div>';
+                '<div class="error-state">Failed to load clients from database.</div>';
         }
         clientsState = [];
         return [];

@@ -1,24 +1,23 @@
-import { getClientsState } from './clients.js';
+import { getCurrentUser } from './auth.js';
 
-export const initDashboard = () => {
+export const initDashboard = async () => {
     const welcomeMessage = document.getElementById('welcomeMessage');
     const liveClock = document.getElementById('liveClock');
     const dashboardPanel = document.querySelector('.main-content .panel:not(.dashboard-hero)');
 
-    const session = JSON.parse(localStorage.getItem('crm_session'));
-    if (session && welcomeMessage) {
-        const users = JSON.parse(localStorage.getItem('crm_users')) || [];
-        const user = users.find((u) => u.email === session.email);
-        if (user) {
-            welcomeMessage.textContent = `Welcome back, ${user.fullName.split(' ')[0]}!`;
-        }
+    const user = await getCurrentUser();
+    if (user && welcomeMessage) {
+        const firstName = user.fullName.split(' ')[0] || user.email;
+        welcomeMessage.textContent = `Welcome back, ${firstName}!`;
     }
 
     if (liveClock) {
-        setInterval(() => {
+        const tick = () => {
             const now = new Date();
             liveClock.textContent = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-        }, 1000);
+        };
+        tick();
+        setInterval(tick, 1000);
     }
 
     renderDashboardStats(dashboardPanel);
@@ -29,13 +28,11 @@ const renderDashboardStats = (container) => {
     const clients = getClientsState();
 
     if (!clients || clients.length === 0) {
-        container.innerHTML =
-            '<p style="color: var(--text-secondary);">No data available yet. Please add clients.</p>';
+        container.innerHTML = '<p class="dashboard-empty">No data available yet. Please add clients.</p>';
         return;
     }
 
     const totalClients = clients.length;
-    const activeDeals = clients.filter((c) => c.status !== 'Won' && c.status !== 'Lost').length;
     const wonRevenue = clients
         .filter((c) => c.status === 'Won')
         .reduce((sum, c) => sum + c.dealValue, 0);
@@ -44,11 +41,6 @@ const renderDashboardStats = (container) => {
         currency: 'USD',
         maximumFractionDigits: 0
     }).format(wonRevenue);
-
-    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const newThisWeek = clients.filter(
-        (c) => new Date(c.createdAt).getTime() >= sevenDaysAgo
-    ).length;
 
     const pipeline = clients.reduce(
         (acc, c) => {
@@ -63,34 +55,34 @@ const renderDashboardStats = (container) => {
         .slice(0, 5);
 
     container.innerHTML = `
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-            <div style="padding: 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;">
-                <h4 style="color: var(--text-secondary);">Total Clients</h4>
-                <p style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">${totalClients}</p>
+        <div class="dashboard-stats">
+            <div class="stat-card stat-card--primary">
+                <h4>Total Clients</h4>
+                <p>${totalClients}</p>
             </div>
-            <div style="padding: 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;">
-                <h4 style="color: var(--text-secondary);">Won Revenue</h4>
-                <p style="font-size: 1.5rem; font-weight: bold; color: var(--success-color);">${formattedRevenue}</p>
+            <div class="stat-card stat-card--success">
+                <h4>Won Revenue</h4>
+                <p>${formattedRevenue}</p>
             </div>
         </div>
-        <div style="margin-bottom: 2rem;">
+        <div class="dashboard-section">
             <h3>Pipeline Overview</h3>
-            <p style="color: var(--text-secondary); margin-top: 0.5rem;">
-                Lead: ${pipeline.Lead} | Contacted: ${pipeline.Contacted} | Won: ${pipeline.Won} | Lost: ${pipeline.Lost}
+            <p class="pipeline-summary">
+                Lead: ${pipeline.Lead} · Contacted: ${pipeline.Contacted} · Won: ${pipeline.Won} · Lost: ${pipeline.Lost}
             </p>
         </div>
-        <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div class="dashboard-section">
+            <div class="dashboard-section__header">
                 <h3>Recent Clients</h3>
-                <a href="clients.html" style="font-size: 0.9rem;">View all clients &rarr;</a>
+                <a href="clients.html">View all clients →</a>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="recent-list">
                 ${recentClients
                     .map(
                         (c) => `
-                    <div style="display: flex; justify-content: space-between; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--card-bg);">
+                    <div class="recent-item">
                         <span><strong>${c.name}</strong></span>
-                        <span style="font-size: 0.85rem; color: var(--text-secondary);">${new Date(c.createdAt).toLocaleDateString()}</span>
+                        <span>${new Date(c.createdAt).toLocaleDateString()}</span>
                     </div>
                 `
                     )

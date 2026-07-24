@@ -1,18 +1,18 @@
+import {
+    changeUserPassword,
+    getCurrentUser,
+    updateUserProfile
+} from './auth.js';
 import { resetClientsData } from './clients.js';
 import { showToast, showError, clearErrors } from '../utils/dom.js';
 
-export const initProfile = () => {
-    const session = JSON.parse(localStorage.getItem('crm_session'));
-    if (!session) return;
-
-    let users = JSON.parse(localStorage.getItem('crm_users')) || [];
-    let currentUser = users.find((u) => u.email === session.email);
-
+export const initProfile = async () => {
+    const currentUser = await getCurrentUser();
     if (!currentUser) return;
 
     renderProfileInfo(currentUser);
-    setupEditProfile(currentUser, users);
-    setupChangePassword(currentUser, users);
+    setupEditProfile(currentUser);
+    setupChangePassword();
     setupResetData();
 };
 
@@ -39,42 +39,42 @@ const renderProfileInfo = (user) => {
     `;
 };
 
-const setupEditProfile = (currentUser, users) => {
+const setupEditProfile = (currentUser) => {
     const form = document.getElementById('editProfileForm');
     if (!form) return;
 
     document.getElementById('editName').value = currentUser.fullName;
     document.getElementById('editCompany').value = currentUser.company || '';
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearErrors(form);
 
         const nameInput = document.getElementById('editName');
         const companyInput = document.getElementById('editCompany');
 
-        if (nameInput.value.trim().length < 3) {
-            showError(nameInput, 'Full name must be at least 3 characters');
+        const result = await updateUserProfile({
+            fullName: nameInput.value,
+            company: companyInput.value
+        });
+
+        if (!result.ok) {
+            if (result.errors?.editName) {
+                showError(nameInput, result.errors.editName);
+            }
             return;
         }
 
-        currentUser.fullName = nameInput.value.trim();
-        currentUser.company = companyInput.value.trim();
-
-        const userIndex = users.findIndex((u) => u.id === currentUser.id);
-        users[userIndex] = currentUser;
-        localStorage.setItem('crm_users', JSON.stringify(users));
-
-        renderProfileInfo(currentUser);
+        renderProfileInfo(result.user);
         showToast('Profile updated ✓', 'success');
     });
 };
 
-const setupChangePassword = (currentUser, users) => {
+const setupChangePassword = () => {
     const form = document.getElementById('changePasswordForm');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearErrors(form);
 
@@ -82,33 +82,23 @@ const setupChangePassword = (currentUser, users) => {
         const newInput = document.getElementById('newPass');
         const confirmInput = document.getElementById('confirmNewPass');
 
-        let isValid = true;
+        const result = await changeUserPassword({
+            currentPassword: currentInput.value,
+            newPassword: newInput.value,
+            confirmPassword: confirmInput.value
+        });
 
-        if (currentInput.value !== currentUser.password) {
-            showError(currentInput, 'Current password is incorrect');
-            isValid = false;
+        if (!result.ok) {
+            if (result.errors) {
+                Object.entries(result.errors).forEach(([id, message]) => {
+                    showError(document.getElementById(id), message);
+                });
+            }
+            return;
         }
 
-        const passRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
-        if (!passRegex.test(newInput.value)) {
-            showError(newInput, 'Password must be at least 8 characters and contain a letter and a number');
-            isValid = false;
-        }
-
-        if (newInput.value !== confirmInput.value) {
-            showError(confirmInput, 'Passwords do not match');
-            isValid = false;
-        }
-
-        if (isValid) {
-            currentUser.password = newInput.value;
-            const userIndex = users.findIndex((u) => u.id === currentUser.id);
-            users[userIndex] = currentUser;
-            localStorage.setItem('crm_users', JSON.stringify(users));
-
-            form.reset();
-            showToast('Password changed ✓', 'success');
-        }
+        form.reset();
+        showToast('Password changed ✓', 'success');
     });
 };
 

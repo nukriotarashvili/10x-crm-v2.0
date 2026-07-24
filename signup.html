@@ -3,43 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>10X CRM - Sign Up</title>
+    <title>10X CRM — Sign up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/main.css">
-    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.4/build/spline-viewer.js"></script>
 </head>
-<body>
+<body class="auth-page">
     <div class="auth-layout">
-        <div class="auth-visuals" aria-hidden="true">
-            <spline-viewer url="https://prod.spline.design/your-scene-url/scene.splinecode"></spline-viewer>
-        </div>
+        <header class="auth-topbar">
+            <a href="index.html" class="auth-topbar__brand">10X CRM</a>
+            <button type="button" id="themeToggle" class="auth-topbar__theme" aria-label="Toggle theme">
+                Theme
+            </button>
+        </header>
 
-        <div class="auth-container">
+        <main class="auth-center">
             <div class="auth-card">
+                <noscript>
+                    <p class="auth-subtitle" style="color: var(--error-color);">
+                        JavaScript is required to use the sign up form. Enable JS or use a modern browser.
+                    </p>
+                </noscript>
                 <h1>Create your account</h1>
-                <form id="signupForm" novalidate>
+                <p class="auth-subtitle">Join 10X CRM and manage clients in one place.</p>
+                <form id="signupForm" class="auth-form" novalidate>
                     <div class="form-group">
-                        <input type="text" id="signupName" placeholder="Full Name" required>
+                        <input type="text" id="signupName" placeholder="Full Name" autocomplete="name" required>
                     </div>
                     <div class="form-group">
-                        <input type="email" id="signupEmail" placeholder="Email" required>
+                        <input type="email" id="signupEmail" placeholder="Email" autocomplete="email" required>
                     </div>
                     <div class="form-group">
-                        <input type="text" id="signupCompany" placeholder="Company (optional)">
+                        <input type="text" id="signupCompany" placeholder="Company (optional)" autocomplete="organization">
+                    </div>
+                    <div class="form-group form-group--password">
+                        <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" required>
+                        <div class="password-strength" id="signupPasswordStrength" aria-live="polite">
+                            <div class="password-strength__header">
+                                <span class="password-strength__label">Password strength</span>
+                            </div>
+                            <div class="password-strength__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                <div class="password-strength__fill"></div>
+                            </div>
+                            <ul class="password-strength__rules">
+                                <li data-rule="length">At least 8 characters</li>
+                                <li data-rule="uppercase">At least one uppercase letter (A–Z)</li>
+                                <li data-rule="symbol">At least one symbol (!@#$%&*)</li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <input type="password" id="signupPassword" placeholder="Password" required>
+                        <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" autocomplete="new-password" required>
                     </div>
-                    <div class="form-group">
-                        <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required>
-                    </div>
-                    <button type="submit">Create Account</button>
+                    <button type="submit" id="signupSubmitBtn" class="btn-primary" disabled>Create account</button>
                 </form>
                 <div class="auth-links">
                     Already have an account? <a href="index.html">Log in</a>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-    <script type="module" src="js/app.js"></script>
+    <p id="signupLoadError" class="error-text" hidden style="max-width:420px;margin:1rem auto;text-align:center;"></p>
+    <script type="module">
+        import('./js/auth-app.js').catch((error) => {
+            console.error('Failed to load auth app:', error);
+            const message = document.getElementById('signupLoadError');
+            if (message) {
+                message.hidden = false;
+                message.textContent =
+                    'Could not load sign up. Use http://localhost (not file://) and check the browser console.';
+            }
+        });
+    </script>
 </body>
 </html>
