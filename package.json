@@ -1,0 +1,15 @@
+{
+  "name": "10x-crm-v2",
+  "private": true,
+  "scripts": {
+    "build:css": "sass styles/main.scss styles/main.css --no-source-map",
+    "watch:css": "sass styles/main.scss styles/main.css --watch",
+    "start": "npm run build:css && npx serve . -l 3000",
+    "dev": "npm run build:css && npx concurrently \"npm run watch:css\" \"npx serve . -l 3000\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "sass": "^1.83.0",
+    "serve": "^14.2.4"
+  }
+}

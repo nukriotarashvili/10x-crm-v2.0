@@ -63,17 +63,22 @@ Repository: [github.com/nukriotarashvili/10x-crm-v2.0](https://github.com/nukrio
 
 ES modules require a **local HTTP server** (do not open HTML via `file://`).
 
+Styles: HTML loads **`styles/main.css`**, compiled from **`styles/main.scss`** (partials: `_variables`, `_animations`, `_global`, `_auth`, `_layout`).
+
 ```bash
 cd 10x-crm-V2.0
-npx serve .
+npm install
+npm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) → register on **Sign up**, then use the app.
 
-**Compile SCSS** (after style changes):
+**SCSS only** (after style changes):
 
 ```bash
-sass styles/main.scss styles/main.css
+npm run build:css
+# or live reload while editing SCSS:
+npm run watch:css
 ```
 
 ---

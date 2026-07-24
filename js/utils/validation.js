@@ -13,6 +13,11 @@ export const PASSWORD_RULES = [
         test: (password) => /[A-Z]/.test(password)
     },
     {
+        id: 'digit',
+        label: 'At least one number (0–9)',
+        test: (password) => /\d/.test(password)
+    },
+    {
         id: 'symbol',
         label: 'At least one symbol (!@#$%&*)',
         test: (password) => PASSWORD_SYMBOL_REGEX.test(password)
@@ -37,7 +42,7 @@ export const isValidPassword = (password) =>
     getPasswordRuleStates(password).every((rule) => rule.met);
 
 export const getPasswordValidationMessage = () =>
-    'Password must be at least 8 characters, include an uppercase letter, and a symbol (!@#$%&*).';
+    'Password must be at least 8 characters and include an uppercase letter, a number, and a symbol (!@#$%&*).';
 
 export const hasMinLength = (value, min) => value.trim().length >= min;
 
