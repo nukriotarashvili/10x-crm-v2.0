@@ -27,11 +27,16 @@
         <main class="main-content">
             <div class="page-header">
                 <h1>Clients</h1>
-                <button id="addClientBtn" class="btn-primary">+ Add Client</button>
+                <button type="button" id="addClientBtn" class="btn-primary">+ Add Client</button>
             </div>
 
             <div class="panel toolbar">
                 <input type="text" id="searchInput" class="toolbar-input" placeholder="Search...">
+                <div class="toolbar-view-actions">
+                    <button type="button" id="viewListBtn" class="chip active" data-view="list">List View</button>
+                    <button type="button" id="viewKanbanBtn" class="chip" data-view="kanban">Kanban View</button>
+                    <button type="button" id="exportCsvBtn" class="btn-secondary">Export to CSV</button>
+                </div>
                 <div class="filters">
                     <button type="button" class="chip active" data-status="All">All</button>
                     <button type="button" class="chip" data-status="Lead">Lead</button>
@@ -46,7 +51,11 @@
                 </select>
             </div>
 
-            <div id="clientsContainer"></div>
+            <div id="clientsListView" class="clients-list-view"></div>
+            <div id="clientsKanbanView" class="kanban-board" hidden></div>
+            <div class="clients-footer">
+                <button type="button" id="loadMoreBtn" class="btn-primary" hidden>Load More</button>
+            </div>
         </main>
     </div>
 

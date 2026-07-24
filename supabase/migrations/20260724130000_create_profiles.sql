@@ -25,6 +25,14 @@ create policy "profiles_update_own"
     using (auth.uid() = id)
     with check (auth.uid() = id);
 
+drop policy if exists "profiles_insert_own" on public.profiles;
+
+create policy "profiles_insert_own"
+    on public.profiles
+    for insert
+    to authenticated
+    with check (auth.uid() = id);
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -38,7 +46,11 @@ begin
         new.email,
         coalesce(new.raw_user_meta_data ->> 'full_name', ''),
         coalesce(new.raw_user_meta_data ->> 'company', '')
-    );
+    )
+    on conflict (id) do update set
+        email = excluded.email,
+        full_name = coalesce(nullif(excluded.full_name, ''), public.profiles.full_name),
+        company = coalesce(nullif(excluded.company, ''), public.profiles.company);
     return new;
 end;
 $$;

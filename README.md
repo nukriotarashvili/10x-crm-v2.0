@@ -25,8 +25,20 @@ Repository: [github.com/nukriotarashvili/10x-crm-v2.0](https://github.com/nukrio
 **Dashboard** — Gradient hero, live clock, stats (clients, revenue, pipeline, recent list).  
 **Dashboard** — Hero ბანერი, ცოცხალი საათი, სტატისტიკა.
 
-**Clients** — Load from API/cache, search, filter by status, sort, add/delete (with skeleton loading).  
-**კლიენტები** — ჩატვირთვა, ძებნა, ფილტრი, სორტირება, CRUD, skeleton loader.
+**Clients** — Paginated load, debounced search, List/Kanban (HTML5 drag & drop), CSV export, filter, sort, CRUD, skeleton loader.  
+**კლიენტები** — Load More, debounce ძებნა, Kanban, CSV ექსპორტი, CRUD.
+
+**Kanban board** — Switch List/Kanban on Clients; drag cards across Lead → Contacted → Won → Lost; optimistic UI + Supabase status sync.  
+**Kanban** — სტატუსის გადათრევა, UI + ბაზის განახლება.
+
+**Search debounce** — 300ms delay before client-side filter runs.  
+**Debounce** — ძებნა 300ms შემდეგ.
+
+**Pagination** — `Load More` fetches next Supabase page and appends cards.  
+**პაგინაცია** — Load More + Supabase range.
+
+**CSV export** — Download current filtered `clientsState` as `.csv` via Blob URL.  
+**CSV** — ფილტრირებული კლიენტების ჩამოტვირთვა.
 
 **Profile** — Edit name/company, change password, reset client data.  
 **პროფილი** — მონაცემების განახლება, პაროლი, მონაცემების განულება.
@@ -51,8 +63,11 @@ Repository: [github.com/nukriotarashvili/10x-crm-v2.0](https://github.com/nukrio
 │   │   ├── clients.js
 │   │   ├── dashboard.js
 │   │   └── profile.js
+│   ├── pages/
+│   │   └── clients-page.js          # Kanban, load more, CSV export UI
 │   └── utils/
-│       ├── dom.js                   # Toast, errors, skeleton
+│       ├── dom.js                   # Toast, errors, skeleton, debounce
+│       ├── csv.js                   # CSV string + Blob download
 │       └── validation.js
 └── styles/                          # SCSS partials → main.css
 ```
@@ -101,6 +116,16 @@ export const SUPABASE_ANON_KEY = 'your-anon-key-here';
 3. Copy `js/config.example.js` if `js/config.js` is missing (`config.js` is gitignored).
 
 Without a valid anon key in `js/config.js`, login and registration will not work.
+
+**Invalid API key at signup:** The static app reads **`js/config.js` only** (not `.env.local`). Fix: Supabase Dashboard → **Settings → API** → copy **Project URL** and **anon public** from the **same** page into `js/config.js`, or run `npm run config:sync` after filling `.env.local`. Hard-refresh the browser (`Ctrl+Shift+R`).
+
+**User / profile not saved:** Run `supabase/migrations/20260724130000_create_profiles.sql` in SQL Editor (includes `profiles_insert_own` policy + auth trigger). For local dev, disable **Confirm email** under Authentication → Providers → Email so signup returns a session.
+
+**HTTP 429 on signup/login:** Supabase Auth rate limit (often after many test signups from the same IP). Wait 1–2 minutes; do not spam the button. Free tier limits are stricter.
+
+**HTTP 400 on login (`/auth/v1/token?grant_type=password`):** Usually wrong email/password, or **email not confirmed** when «Confirm email» is enabled in Supabase. For local dev, disable confirm under Authentication → Providers → Email, or confirm via the email link. Check Authentication → Users in the Dashboard.
+
+**`net::ERR_NAME_NOT_RESOLVED`:** The Project URL hostname is wrong (typo or deleted project). Valid project for this repo: `https://ygizkwgkbutczbctislm.supabase.co` — do not use `ygkz...` (that host does not exist in DNS).
 
 **Security:** Dev RLS on `clients` is open for `anon` — tighten policies for production.
 

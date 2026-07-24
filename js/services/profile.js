@@ -62,6 +62,9 @@ const setupEditProfile = (currentUser) => {
             if (result.errors?.editName) {
                 showError(nameInput, result.errors.editName);
             }
+            if (result.message) {
+                showToast(result.message, 'error');
+            }
             return;
         }
 

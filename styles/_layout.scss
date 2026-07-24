@@ -528,6 +528,117 @@
   min-height: 120px;
 }
 
+.clients-list-view {
+  min-height: 120px;
+}
+
+.toolbar-view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.clients-footer {
+  display: flex;
+  justify-content: center;
+  padding: 1.25rem 0 0.5rem;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 1rem;
+  align-items: start;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kanban-column {
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.kanban-column__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+
+  h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+}
+
+.kanban-column__count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 0.1rem 0.5rem;
+}
+
+.kanban-column__body {
+  flex: 1;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 240px;
+  transition: background-color var(--transition-base);
+
+  &.is-drag-over {
+    background: var(--accent-soft);
+    outline: 2px dashed color-mix(in srgb, var(--primary-color) 35%, transparent);
+    outline-offset: -4px;
+  }
+}
+
+.kanban-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  @include animations.transition-interactive;
+
+  h4 {
+    font-size: 0.9375rem;
+    margin-bottom: 0.35rem;
+  }
+
+  &.is-dragging {
+    opacity: 0.55;
+    cursor: grabbing;
+  }
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.kanban-card__meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.15rem;
+}
+
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

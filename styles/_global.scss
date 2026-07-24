@@ -154,6 +154,34 @@ a {
   &:active {
     transform: scale(0.98);
   }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.85rem;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  @include animations.transition-interactive;
+  @include animations.focus-ring;
+
+  &:hover {
+    background: var(--accent-soft);
+    border-color: color-mix(in srgb, var(--primary-color) 30%, var(--border-color));
+  }
 }
 
 .btn-danger {

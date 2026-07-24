@@ -128,6 +128,20 @@ export const showGenericFormError = (form, message) => {
     genError.textContent = message;
 };
 
+/**
+ * Debounce utility — delays `fn` until `wait` ms pass without another invocation.
+ * Used on client search so filtering runs after the user pauses typing, not every keypress.
+ */
+export const debounce = (fn, wait = 300) => {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            fn(...args);
+        }, wait);
+    };
+};
+
 export const showSkeletonLoader = (container, count = 5) => {
     if (!container) return;
     container.innerHTML = Array(count)

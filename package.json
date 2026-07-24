@@ -4,6 +4,7 @@
   "scripts": {
     "build:css": "sass styles/main.scss styles/main.css --no-source-map",
     "watch:css": "sass styles/main.scss styles/main.css --watch",
+    "config:sync": "node scripts/sync-config-from-env.mjs",
     "start": "npm run build:css && npx serve . -l 3000",
     "dev": "npm run build:css && npx concurrently \"npm run watch:css\" \"npx serve . -l 3000\""
   },

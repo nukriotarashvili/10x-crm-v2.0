@@ -29,6 +29,11 @@ export function initLoginPage() {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (loginForm.dataset.submitting === 'true') {
+            return;
+        }
+
         clearErrors(loginForm);
         loginForm.querySelector('.generic-error')?.remove();
 
@@ -41,7 +46,21 @@ export function initLoginPage() {
             return;
         }
 
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing in…';
+        }
+        loginForm.dataset.submitting = 'true';
+
         const result = await loginUser({ email, password });
+
+        loginForm.dataset.submitting = 'false';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Log in';
+        }
+
         if (result.ok) {
             window.location.href = 'dashboard.html';
         } else {
@@ -84,6 +103,11 @@ export function initSignupPage() {
     signupForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         e.stopPropagation();
+
+        if (signupForm.dataset.submitting === 'true') {
+            return;
+        }
+
         clearErrors(signupForm);
         signupForm.querySelector('.generic-error')?.remove();
 
@@ -110,6 +134,7 @@ export function initSignupPage() {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Creating account…';
         }
+        signupForm.dataset.submitting = 'true';
 
         let result;
         try {
@@ -123,6 +148,7 @@ export function initSignupPage() {
         } catch (error) {
             console.error('Registration error:', error);
             showGenericFormError(signupForm, 'Registration failed. Please try again.');
+            signupForm.dataset.submitting = 'false';
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Create account';
@@ -130,6 +156,8 @@ export function initSignupPage() {
             updateSubmitState();
             return;
         }
+
+        signupForm.dataset.submitting = 'false';
 
         if (submitBtn) {
             submitBtn.disabled = false;
@@ -148,11 +176,23 @@ export function initSignupPage() {
         }
 
         if (result.needsEmailConfirmation) {
-            showToast('Account created! Confirm your email, then log in.', 'success');
-        } else {
-            showToast('Account created successfully! Please log in.', 'success');
+            showToast(
+                'ანგარიში შეიქმნა. დაადასტურე ელფოსტა, შემდეგ შედი.',
+                'success'
+            );
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+            return;
         }
 
+        if (result.session) {
+            showToast('ანგარიში შეიქმნა — მოგესალმებით!', 'success');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        showToast('ანგარიში შეიქმნა. გთხოვ შედი.', 'success');
         setTimeout(() => {
             window.location.href = 'index.html';
         }, 1500);

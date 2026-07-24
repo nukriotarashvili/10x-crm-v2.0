@@ -15,6 +15,43 @@ const getApiModule = () => {
     return apiModulePromise;
 };
 
+const isAuthRateLimited = (error) =>
+    error?.status === 429 ||
+    /too many requests|rate limit|over_request_rate_limit/i.test(String(error?.message ?? ''));
+
+const rateLimitMessage =
+    'ძალიან ბევრი მცდელობა (Supabase rate limit). დაელოდე 1–2 წუთს და სცადე თავიდან — ნუ დააჭერ ღილაკს რამდენჯერმე.';
+
+/** Maps Supabase Auth errors (400 on /token?grant_type=password) to clear UI text. */
+const mapLoginAuthError = (error) => {
+    const message = String(error?.message ?? '');
+    const code = String(error?.code ?? '');
+
+    if (/invalid api key/i.test(message)) {
+        return null;
+    }
+    if (isAuthRateLimited(error)) {
+        return rateLimitMessage;
+    }
+    if (
+        code === 'email_not_confirmed' ||
+        /email not confirmed|confirm your email/i.test(message)
+    ) {
+        return 'ელფოსტა ჯერ არ არის დადასტურებული. გახსენი confirmation link ფოსტიდან, ან dev-ისთვის: Supabase → Authentication → Providers → Email → გამორთე «Confirm email».';
+    }
+    if (
+        code === 'invalid_credentials' ||
+        /invalid login credentials|invalid grant|wrong password/i.test(message)
+    ) {
+        return 'ელფოსტა ან პაროლი არასწორია. გამოიყენე იგივე პაროლი, რაც Sign up-ზე შეგიყვანია.';
+    }
+    if (/user banned|ban/i.test(message)) {
+        return 'ეს ანგარიში დაბლოკილია.';
+    }
+
+    return message || 'შესვლა ვერ მოხერხდა. შეამოწმე ელფოსტა და პაროლი.';
+};
+
 export const isPublicPage = (path) => {
     const normalized = path.toLowerCase();
     const file = normalized.split('/').pop() || '';
@@ -135,6 +172,7 @@ export const registerUser = async ({
         return {
             ok: true,
             user: data.user,
+            session: data.session ?? null,
             needsEmailConfirmation: Boolean(data.user && !data.session)
         };
     } catch (error) {
@@ -145,6 +183,18 @@ export const registerUser = async ({
                 ok: false,
                 errors: { signupEmail: 'An account with this email already exists' }
             };
+        }
+
+        if (/invalid api key/i.test(message)) {
+            const { getSupabaseConfigHint } = await getApiModule();
+            return {
+                ok: false,
+                message: `Invalid API key — ${getSupabaseConfigHint()}`
+            };
+        }
+
+        if (isAuthRateLimited(error)) {
+            return { ok: false, message: rateLimitMessage };
         }
 
         return { ok: false, message };
@@ -175,8 +225,19 @@ export const loginUser = async ({ email, password }) => {
             password
         });
         return { ok: true };
-    } catch {
-        return { ok: false };
+    } catch (error) {
+        if (/invalid api key/i.test(error?.message ?? '')) {
+            const { getSupabaseConfigHint } = await getApiModule();
+            return {
+                ok: false,
+                message: `Invalid API key — ${getSupabaseConfigHint()}`
+            };
+        }
+
+        return {
+            ok: false,
+            message: mapLoginAuthError(error)
+        };
     }
 };
 
@@ -202,8 +263,12 @@ export const updateUserProfile = async ({ fullName, company }) => {
             company: company.trim()
         });
         return { ok: true, user };
-    } catch {
-        return { ok: false };
+    } catch (error) {
+        console.error('Profile update failed:', error);
+        return {
+            ok: false,
+            message: error?.message ?? 'Could not save profile'
+        };
     }
 };
 
