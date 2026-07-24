@@ -121,34 +121,3 @@ export const filterAndSortClients = (clients, { searchTerm, activeFilter, sortVa
 
     return filtered;
 };
-
-export const computeDashboardStats = (clients) => {
-    const totalClients = clients.length;
-    const activeDeals = clients.filter((c) => c.status !== 'Won' && c.status !== 'Lost').length;
-    const wonRevenue = clients
-        .filter((c) => c.status === 'Won')
-        .reduce((sum, c) => sum + c.dealValue, 0);
-    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    const newThisWeek = clients.filter(
-        (c) => new Date(c.createdAt).getTime() >= sevenDaysAgo
-    ).length;
-    const pipeline = clients.reduce(
-        (acc, c) => {
-            acc[c.status] = (acc[c.status] || 0) + 1;
-            return acc;
-        },
-        { Lead: 0, Contacted: 0, Won: 0, Lost: 0 }
-    );
-    const recentClients = [...clients]
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
-
-    return {
-        totalClients,
-        activeDeals,
-        wonRevenue,
-        newThisWeek,
-        pipeline,
-        recentClients
-    };
-};

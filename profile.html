@@ -33,10 +33,31 @@
             <div class="profile-forms">
                 <div class="panel" id="editProfilePanel">
                     <h3>Edit Profile</h3>
+                    <form id="editProfileForm" class="profile-form" novalidate>
+                        <div class="form-group">
+                            <input type="text" id="editName" placeholder="Full Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="editCompany" placeholder="Company">
+                        </div>
+                        <button type="submit" class="btn-primary">Save Changes</button>
+                    </form>
                 </div>
 
                 <div class="panel" id="changePasswordPanel">
                     <h3>Change Password</h3>
+                    <form id="changePasswordForm" class="profile-form" novalidate>
+                        <div class="form-group">
+                            <input type="password" id="currentPass" placeholder="Current Password" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="newPass" placeholder="New Password" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="confirmNewPass" placeholder="Confirm New Password" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Change Password</button>
+                    </form>
                 </div>
 
                 <div class="panel panel--danger">
