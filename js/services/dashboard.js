@@ -1,9 +1,10 @@
 import { getCurrentUser } from './auth.js';
+import { getClientsState } from './clients.js';
 
 export const initDashboard = async () => {
     const welcomeMessage = document.getElementById('welcomeMessage');
     const liveClock = document.getElementById('liveClock');
-    const dashboardPanel = document.querySelector('.main-content .panel:not(.dashboard-hero)');
+    const dashboardPanel = document.getElementById('dashboardContent');
 
     const user = await getCurrentUser();
     if (user && welcomeMessage) {
@@ -35,7 +36,7 @@ const renderDashboardStats = (container) => {
     const totalClients = clients.length;
     const wonRevenue = clients
         .filter((c) => c.status === 'Won')
-        .reduce((sum, c) => sum + c.dealValue, 0);
+        .reduce((sum, c) => sum + (Number(c.dealValue) || 0), 0);
     const formattedRevenue = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',

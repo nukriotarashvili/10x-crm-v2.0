@@ -38,7 +38,7 @@ async function bootApp() {
 
     if (path.endsWith('clients.html') || path.endsWith('/clients')) {
         await initClientsPage();
-    } else if (path.endsWith('dashboard.html')) {
+    } else if (path.endsWith('dashboard.html') || path.endsWith('/dashboard')) {
         const { loadClients } = await import('./services/clients.js');
         const { initDashboard } = await import('./services/dashboard.js');
         const dummyContainer = document.createElement('div');
